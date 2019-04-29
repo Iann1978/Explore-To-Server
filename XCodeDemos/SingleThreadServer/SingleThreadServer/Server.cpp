@@ -51,16 +51,20 @@ int Connection::ProcessRecieve()
 
 int ParsingCmd(std::string packet, std::string &to, std::string &cmd, std::string &param)
 {
-    std::string s = "scott>=tiger>=mushroom";
-    std::string delimiter = ">=";
-    
+    std::string s = packet;
+    std::string delimiter = " ";
+    std::vector<std::string> list;
     size_t pos = 0;
     std::string token;
     while ((pos = s.find(delimiter)) != std::string::npos) {
         token = s.substr(0, pos);
         std::cout << token << std::endl;
+        list.push_back(token);
         s.erase(0, pos + delimiter.length());
     }
+    to = list[0];
+    cmd = list[1];
+    param = list[2];
     std::cout << s << std::endl;
     return 0;
 }
@@ -73,17 +77,17 @@ int Connection::ProcessPacket()
         std::string to, cmd, param;
         ParsingCmd(packet, to, cmd, param);
         
-        if (to.compare("me") || to.compare("self"))
+        if ((0 == to.compare("me")) || (0 == to.compare("self")))
         {
-            if (cmd.compare("setname"))
+            if (0 == cmd.compare("setname"))
             {
                 username = param;
             }
-            else if (cmd.compare("whoami"))
+            else if (0 == cmd.compare("whoami"))
             {
                 
             }
-            else if (cmd.compare("whoonline"))
+            else if (0 == cmd.compare("whoonline"))
             {
                 
             }
