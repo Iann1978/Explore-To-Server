@@ -43,6 +43,7 @@ public:
     int ProcessSend();
     int Close();
 private:
+    std::string username;
     int sock;
     std::stringstream recvstring;
     std::queue<std::string> recvQueue;
@@ -54,6 +55,7 @@ public:
     int Run();
     int ProcessAccept();
     int ProcessReceive();
+    int ProcessPacket();
 private:
     int sock;
     std::list<Connection *> connections;
