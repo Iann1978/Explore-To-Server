@@ -51,21 +51,28 @@ int Connection::ProcessRecieve()
 
 int ParsingCmd(std::string packet, std::string &to, std::string &cmd, std::string &param)
 {
-    std::string s = packet;
-    std::string delimiter = " ";
-    std::vector<std::string> list;
-    size_t pos = 0;
-    std::string token;
-    while ((pos = s.find(delimiter)) != std::string::npos) {
-        token = s.substr(0, pos);
-        std::cout << token << std::endl;
-        list.push_back(token);
-        s.erase(0, pos + delimiter.length());
+    vector<string> stringlist;
+    const char *str = packet.c_str();
+    const char delimiter = ' ';
+    std::stringstream ss;
+    char c = 0;
+    while (c = *str++) {
+        if (c == delimiter)
+        {
+            stringlist.push_back(ss.str());
+            ss.str("");
+            ss.clear();
+        }
+        else
+        {
+            ss.put(c);
+        }
     }
-    to = list[0];
-    cmd = list[1];
-    param = list[2];
-    std::cout << s << std::endl;
+    stringlist.push_back(ss.str());
+    if (stringlist.size()>0) to = stringlist[0];
+    if (stringlist.size()>1) cmd = stringlist[1];
+    if (stringlist.size()>2) param = stringlist[2];
+
     return 0;
 }
 
@@ -79,13 +86,13 @@ int Connection::ProcessPacket()
         
         if ((0 == to.compare("me")) || (0 == to.compare("self")))
         {
-            if (0 == cmd.compare("setname"))
+            if ((0 == cmd.compare("setname")) || (0 == cmd.compare("iam")))
             {
                 username = param;
             }
-            else if (0 == cmd.compare("whoami"))
+            else if (0 == cmd.compare("whoami") || 0 == cmd.compare("whoami\r"))
             {
-                
+                sendQueue.push(string("i am ") + username + "\n");
             }
             else if (0 == cmd.compare("whoonline"))
             {
@@ -99,9 +106,25 @@ int Connection::ProcessPacket()
     
 }
 
+int Connection::ProcessSend()
+{
+    if (sendQueue.size())
+    {
+        string sendCatch = sendQueue.front();
+        sendQueue.pop();
+        int ret = send(sock, (char*)sendCatch.c_str(), (int)sendCatch.size(), 0);
+        if (ret != sendCatch.size())
+        {
+            printf("Error in %s", __FUNCTION__);
+        }
+
+    }
+    return 0;
+}
+
 int Server::CreateSocket()
 {
-    int port = 5678;
+    int port = 5679;
     const char *ip = "192.168.31.48";
     int error = 0;
     sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -169,12 +192,24 @@ int Server::ProcessPacket()
     return 0;
 }
 
+int Server::ProcessSend()
+{
+    for(std::list<Connection *>::iterator it = connections.begin();
+        it != connections.end(); it++)
+    {
+        Connection *conn = *it;
+        conn->ProcessSend();
+    }
+    return 0;
+}
+
 int Server::Run()
 {
     while (true) {
         ProcessAccept();
         ProcessReceive();
         ProcessPacket();
+        ProcessSend();
         //sleep(10);
     }
     return 0;

@@ -22,7 +22,14 @@
 #include <queue>
 #include <string>
 #include <sstream>
+#include <vector>
 
+
+using std::string;
+using std::queue;
+using std::vector;
+using std::list;
+using std::stringstream;
 
 //using namespace std;
 
@@ -43,19 +50,22 @@ public:
     int ProcessSend();
     int Close();
 private:
-    std::string username;
+    string username;
     int sock;
     std::stringstream recvstring;
     std::queue<std::string> recvQueue;
+    std::queue<std::string> sendQueue;
 };
 
 class Server {
 public:
     int CreateSocket();
     int Run();
+    
     int ProcessAccept();
     int ProcessReceive();
     int ProcessPacket();
+    int ProcessSend();
 private:
     int sock;
     std::list<Connection *> connections;
