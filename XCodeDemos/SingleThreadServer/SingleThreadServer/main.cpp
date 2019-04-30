@@ -14,7 +14,7 @@ int main(int argc, const char * argv[]) {
     
     int error = 0;
     
-    Server server;
+    Server &server = Server::ins;
     
     if (error = server.CreateSocket())
     {

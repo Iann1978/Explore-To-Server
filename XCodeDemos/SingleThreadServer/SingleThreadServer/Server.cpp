@@ -128,8 +128,21 @@ int Connection::ProcessPacket()
                 
             }
         }
-        
-        
+        else if ((0 == to.compare("server")))
+        {
+            if ((0 == cmd.compare("list")) || (0 == cmd.compare("list\r")))
+            {
+                stringstream ss;
+                Server &server = Server::ins;
+                for (std::list<Connection *>::iterator it = server.connections.begin();
+                     it != server.connections.end(); it++)
+                {
+                    Connection *conn = *it;
+                    ss << conn->username << "\n";
+                }
+                sendQueue.push(ss.str());
+            }
+        }
     }
     return 0;
     
@@ -141,16 +154,17 @@ int Connection::ProcessSend()
     {
         string sendCatch = sendQueue.front();
         sendQueue.pop();
-        int ret = send(sock, (char*)sendCatch.c_str(), (int)sendCatch.size(), 0);
+        int ret = send(sock, (char *)sendCatch.c_str(), (int)sendCatch.size(), 0);
         if (ret != sendCatch.size())
         {
             printf("Error in %s", __FUNCTION__);
         }
-
     }
     return 0;
 }
 
+
+Server Server::ins;
 int Server::CreateSocket()
 {
     int port = 5679;

@@ -56,7 +56,7 @@ public:
     int ProcessPacket();
     int ProcessSend();
     int Close();
-private:
+public:
     string username;
     int sock;
     std::stringstream recvstring;
@@ -66,6 +66,8 @@ private:
 
 class Server {
 public:
+    static Server ins;
+public:
     int CreateSocket();
     int Run();
     
@@ -73,7 +75,7 @@ public:
     int ProcessReceive();
     int ProcessPacket();
     int ProcessSend();
-private:
+public:
     int sock;
     std::list<Connection *> connections;
     
