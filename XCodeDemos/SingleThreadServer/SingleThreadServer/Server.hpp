@@ -41,6 +41,13 @@ typedef struct sockaddr SOCKADDR;
 
 
 class Connection {
+    enum Status
+    {
+        Connectted,
+        Breaked,
+        Closed,
+    };
+    Status status;
 public:
     Connection(int sock);
     ~Connection();

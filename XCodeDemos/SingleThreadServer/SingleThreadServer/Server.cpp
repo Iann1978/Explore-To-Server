@@ -10,6 +10,7 @@
 
 
 Connection::Connection(int sock)
+    :status(Connectted)
 {
     this->sock = sock;
 }
@@ -18,6 +19,8 @@ Connection::~Connection()
 {
     this->sock = 0;
 }
+
+
 
 int Connection::ProcessRecieve()
 {
@@ -46,6 +49,32 @@ int Connection::ProcessRecieve()
         buffer[recvbyte] = 0;
         std::cout << buffer;
     }
+    else if (recvbyte < 0)
+    {
+        //printf("recvbyte < 0\n");
+        int error = errno;
+        
+        if (errno == EAGAIN)
+        {
+            
+        }
+        else
+        {
+            printf("errno:%d\n",error);
+            status = Breaked;
+            return 1;
+        }
+        
+        
+        
+    }
+    else if (recvbyte == 0)
+    {
+        printf("recvbyte == 0\n");
+        status = Breaked;
+        return 1;
+    }
+    
     return 0;
 }
 
@@ -153,6 +182,11 @@ int Server::CreateSocket()
     return error;
 }
 
+int Connection::Close()
+{
+    close(sock);
+    return 0;
+}
 
 
 int Server::ProcessAccept()
@@ -172,10 +206,20 @@ int Server::ProcessAccept()
 int Server::ProcessReceive()
 {
     for(std::list<Connection *>::iterator it = connections.begin();
-        it != connections.end(); it++)
+        it != connections.end(); )
     {
         Connection *conn = *it;
-        conn->ProcessRecieve();
+        if (conn->ProcessRecieve())
+        {
+            conn->Close();
+            it++;
+            connections.remove(conn);
+            delete conn;
+        }
+        else
+        {
+            it++;
+        }
     }
     return 0;
 }
@@ -187,7 +231,12 @@ int Server::ProcessPacket()
         it != connections.end(); it++)
     {
         Connection *conn = *it;
-        conn->ProcessPacket();
+        if (conn->ProcessPacket())
+        {
+            conn->Close();
+            connections.remove(conn);
+            delete conn;
+        }
     }
     return 0;
 }
@@ -198,7 +247,12 @@ int Server::ProcessSend()
         it != connections.end(); it++)
     {
         Connection *conn = *it;
-        conn->ProcessSend();
+        if (conn->ProcessSend())
+        {
+            conn->Close();
+            connections.remove(conn);
+            delete conn;
+        }
     }
     return 0;
 }
